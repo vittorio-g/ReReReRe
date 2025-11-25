@@ -36,7 +36,7 @@ inject_careless <- function(data,
   names(props) <- c("random","longstring","mixed")
   
   # Livelli di corruzione (0-1 o 0-100) – mantieni l'ordine fornito dall'utente
-  levels_pct <- ifelse(max(careless_levels) > 1, careless_levels/100, careless_levels)
+  levels_pct <- if(max(careless_levels) > 1){ careless_levels/100}else{ careless_levels}
   if (any(levels_pct <= 0) || any(levels_pct > 1))
     stop("careless_levels deve essere in (0,1] o (0,100]. Esempio: c(40,60,90).")
   
