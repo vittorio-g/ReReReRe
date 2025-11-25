@@ -19,11 +19,21 @@ spi <- data(spi)
 
 M <- multiverse()
 
+#parameters of the multiverse
+
+# options_pct_careless <- seq(.1,.5,.05)
+# options_corThreshold <- seq(.45,.80,.05)
+# options_cutOff <- seq(.81,.99,0.01)
+
+options_pct_careless <- seq(.1,.2,.05)
+options_corThreshold <- seq(.45,.55,.05)
+options_cutOff <- seq(.81,.83,0.01)
+
 inside(M,{
   corruption <- careless_corruption(dat=spi, 
                                     pct_careless = branch(pct_careless, 
                                                            ".05" ~ .05,
-                                                           .options = seq(.1,.5,.05)) ,
+                                                           .options = options_pct_careless) ,
                                     pct_types = c(random = 1/3, longstring = 1/3, mixed = 1/3),
                                     careless_levels = c(1,.9,.8,.7,.6,.5))
   
@@ -39,12 +49,12 @@ inside(M,{
     corThreshold = branch(
       corThreshold,
       ".40" ~ .40,
-      .options = seq(.45,.80,.05)
+      .options = options_corThreshold
     ),
     cutOff = branch(
       cutOff,
       ".80" ~ .80,
-      .options = seq(.81,.99,0.01)
+      .options = options_cutOff
     ),
     iterations = 100
   ) %$%
