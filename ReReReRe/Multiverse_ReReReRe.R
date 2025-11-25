@@ -13,7 +13,8 @@ source("Functions/ReReReRe.R")
 
 
 #loading dataset
-spi <- data(spi)
+data("spi")
+get("spi")
 
 #### Creating Careless Dataset ####
 

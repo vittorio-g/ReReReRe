@@ -8,7 +8,7 @@ library(mice)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-ReReRe3 <- function(data,
+ReReReRe <- function(data,
                     corThreshold=.70, # testa da .10 a .99
                     cutOff=0.95, # testa da .80 a .99
                     iterations=100){ # nel test fissa a 1000

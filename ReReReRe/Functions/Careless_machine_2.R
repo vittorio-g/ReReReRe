@@ -22,7 +22,7 @@ inject_careless <- function(data,
   if (N < 1 || J < 2) stop("Dataset troppo piccolo: servono >=1 riga e >=2 colonne.")
   
   # Percentuale careless (0-1 o 0-100)
-  p_car <- ifelse(pct_careless > 1, pct_careless/100, pct_careless)
+  p_car <- if(pct_careless > 1){pct_careless/100}else{pct_careless}
   if (p_car < 0 || p_car > 1) stop("pct_careless deve essere in [0,1] o [0,100].")
   
   # Percentuali per tipo (0-1 o 0-100, poi normalizzate)
