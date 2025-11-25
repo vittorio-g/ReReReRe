@@ -90,7 +90,7 @@ M %>%
 M %>%
   print
 
-execute_multiverse(M, progress = T)
+execute_multiverse(M, progress = T) %>% suppressWarnings
 
 
 M$corruptSpi
