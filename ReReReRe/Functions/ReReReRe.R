@@ -11,7 +11,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 ReReReRe <- function(data,
                     corThreshold=.70, # testa da .10 a .99
                     cutOff=0.95, # testa da .80 a .99
-                    iterations=100){ # nel test fissa a 1000
+                    iterations=100, # nel test fissa a 1000
+                    progress = F){ 
   
   #keep only numeric values
   data <- data %>%
@@ -30,8 +31,10 @@ ReReReRe <- function(data,
   rowCors <- c()
   
   #progress update
-  cat("\n getting the correlation for each individual \n")
-  pb <- txtProgressBar(min=0,max=1,style=3)
+  if (progress){
+    cat("\n getting the correlation for each individual \n")
+    pb <- txtProgressBar(min=0,max=1,style=3)
+  }
   
   for (i in 1:nrow(data)){
     rowCors <- cor(
@@ -40,9 +43,12 @@ ReReReRe <- function(data,
       use = "complete.obs"
       ) %>%
       append(rowCors,.)
+    
+    if (progress){
     #updating progress bar
     setTxtProgressBar(pb,i/nrow(data))
-  }
+      }
+    }
   
   #small function to transform the numbers to the smallest even number
   make_even <- function(x) {
@@ -53,8 +59,11 @@ ReReReRe <- function(data,
   e <- 1
   all_RIC <- matrix(nrow=nrow(data),ncol=iterations)
   
-  cat("\n computing random correlations \n")
-  pb <- txtProgressBar(min=0,max=1,style=3)
+  #progress update
+  if (progress){
+    cat("\n computing random correlations \n")
+    pb <- txtProgressBar(min=0,max=1,style=3)
+  }
   
   #computing random correlations
   for (i in 1:iterations){
@@ -79,8 +88,7 @@ ReReReRe <- function(data,
     #storing results inside a data.frame case x iteration
     all_RIC[,e] <- RIC %>% abs
     e <- e+1
-    
-    setTxtProgressBar(pb,i/iterations)
+    if (progress){setTxtProgressBar(pb,i/iterations)}
   }
   
   corComparedIndex <- c()
@@ -90,7 +98,9 @@ ReReReRe <- function(data,
       append(corComparedIndex,.)
   }
   
-  cat("\n FINISHED \n The index is based on",nrow(coupples),"coupples of items \n")
+  if (progress){
+    cat("\n FINISHED \n The index is based on",nrow(coupples),"coupples of items \n")
+  }
   
   cbind.data.frame(
     result = corComparedIndex,
