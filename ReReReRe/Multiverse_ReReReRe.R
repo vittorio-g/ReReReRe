@@ -11,7 +11,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 #loading functions
 source("Functions/Careless_machine_2.R")
 source("Functions/A_good_careless_dataset.R")
-source("Functions/ReReReRe-Redux.R")
+source("Functions/ReReReRe.R")
 
 
 library(psychTools)
@@ -27,7 +27,7 @@ M <- multiverse()
 #parameters of the multiverse
 
 options_pct_careless <- seq(.1,.5,.05)
-options_corThreshold <- seq(.45,.80,.05)
+options_corProp <- c(.02, .05, .1, .15, .20, .25, .30)
 options_cutOff <- seq(.81,.99,0.01)
 
 # options_pct_careless <- seq(.1,.2,.05)
@@ -51,10 +51,10 @@ inside(M,{
   
   flagged <- ReReReRe(
     corruptSpi,
-    corThreshold = branch(
-      corThreshold,
-      ".40" ~ .40,
-      .options = options_corThreshold
+    corProp = branch(
+      corProp,
+      ".01" ~ .01,
+      .options = options_corProp
     ),
     cutOff = branch(
       cutOff,
