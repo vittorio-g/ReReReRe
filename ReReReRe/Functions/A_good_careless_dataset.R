@@ -3,6 +3,7 @@ library(psychTools)
 library(mice)
 library(careless)
 library(dplyr)
+library(magrittr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
@@ -50,7 +51,7 @@ careless_corruption <- function(dat,
   
   #summing all flags
   sumFlagged <- flagged %>%
-    apply(1,sum)
+    apply(1,sum,na.rm=T)
   
   #keeping only those with sum=0
   dat <- dat[sumFlagged==0,]

@@ -8,99 +8,79 @@ library(mice)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-ReReReRe <- function(data,
-                    corThreshold=.70, # testa da .10 a .99
-                    cutOff=0.95, # testa da .80 a .99
-                    iterations=100, # nel test fissa a 1000
-                    progress = F){ 
-  
+ReReReRe <- function(data, #any dataset with questionnaire data
+                    corProp=0.05, # the proportion of highest correlations to use
+                    cutOff=0.99, # the severity of the evaluation 
+                    iterations=100){
+
   #keep only numeric values
   data <- data %>%
     select(where(is.numeric))
   
   #computing correlations (absolute values)
-  corMat <- cor(data,use="complete.obs") %>% abs
+  corMat <- cor(data,use="pairwise.complete.obs") %>% abs
   
   #substiting upper triangle (diagonal included) with NAs
   corMat[upper.tri(corMat,diag = T)] <- NA
   
+  #getting the threshold correlation based on the proportion of highest correlation we decided to include.
+  corThreshold <- quantile(corMat,1-corProp, na.rm=T)
+  k <- (corMat>=corThreshold) %>% sum(na.rm=T)
+  
   #getting the row and col names with values higher than threshold
-  coupples <- which(corMat>corThreshold,arr.ind = T)
+  couples <- which(corMat>=corThreshold, arr.ind = T)
   
   #getting the correlation for each individual (for cycle below)
-  rowCors <- c()
-  
-  #progress update
-  if (progress){
-    cat("\n getting the correlation for each individual \n")
-    pb <- txtProgressBar(min=0,max=1,style=3)
-  }
+  rowCors <- rep(NA,nrow(data))
   
   for (i in 1:nrow(data)){
-    rowCors <- cor(
-      data[i,coupples[,1]] %>% as.numeric,
-      data[i,coupples[,2]] %>% as.numeric,
-      use = "complete.obs"
-      ) %>%
-      append(rowCors,.)
-    
-    if (progress){
-    #updating progress bar
-    setTxtProgressBar(pb,i/nrow(data))
-      }
-    }
-  
-  #small function to transform the numbers to the smallest even number
-  make_even <- function(x) {
-    ifelse(x %% 2 == 0, x, x - 1)
+    rowCors[i] <-  tryCatch( 
+      cor(
+        data[i,couples[,1]] %>% as.numeric,
+        data[i,couples[,2]] %>% as.numeric,
+        use = "pairwise.complete.obs"
+        ) %>% abs,
+      error = function(e) return(0) # here for variance zero we return 0 so that longstring will be more easily spotted
+    )
   }
+  
+
   
   #needed in for cycle below
   e <- 1
   all_RIC <- matrix(nrow=nrow(data),ncol=iterations)
   
-  #progress update
-  if (progress){
-    cat("\n computing random correlations \n")
-    pb <- txtProgressBar(min=0,max=1,style=3)
-  }
+  #all possible combinations
+  combinations <- combn(names(data),2) %>% t
+  
   
   #computing random correlations
   for (i in 1:iterations){
     
-    #Giving the columns a random order
-    col_random_order <- sample(1:ncol(data),make_even(ncol(data)))
-    
-    #splitting the columns in two halves
-    indexes_half1 <- col_random_order[1:(length(col_random_order)/2)]
-    indexes_half2 <- col_random_order[(1+length(col_random_order)/2):length(col_random_order)]
+    #Sampling k*2 random columns from the dataset so that they are the same
+    # number of columns as the ordered correlation and the variance of the estimate will be the same
+    sampled <- sample(1:nrow(combinations),k)
+    col_random_order <- combinations[sampled,]
+    RIC <- rep(NA,nrow(data))
     
     #computing the random individual correlation between the two halves
-    RIC <- apply(data,
-                 1,
-                 \(x){
-                   cor(x[indexes_half1] %>% as.numeric,
-                       x[indexes_half2] %>% as.numeric,
-                       use="pairwise.complete.obs") %>%
-                     suppressWarnings()
-                 })  
+    for (j in 1:nrow(data)){
+      RIC[j] <- tryCatch(
+                   cor(data[j,col_random_order[,1]] %>% as.numeric,
+                       data[j,col_random_order[,2]] %>% as.numeric,
+                       use="pairwise.complete.obs"),
+                   error = function(e) return(1) #here for variance 0 we return 1 so that longstring will be more easily spotted
+                 )
+}
     
     #storing results inside a data.frame case x iteration
     all_RIC[,e] <- RIC %>% abs
     e <- e+1
-    if (progress){setTxtProgressBar(pb,i/iterations)}
   }
   
-  corComparedIndex <- c()
+  corComparedIndex <- rep(NA,nrow(data))
   
-  for (i in 1:nrow(data)){
-    corComparedIndex <- mean(all_RIC[i,]<rowCors[i]) %>%
-      append(corComparedIndex,.)
-  }
-  
-  if (progress){
-    cat("\n FINISHED \n The index is based on",nrow(coupples),"coupples of items \n")
-  }
+  corComparedIndex <- rowMeans(all_RIC < rowCors, na.rm=T)
   
   cbind.data.frame(
     result = corComparedIndex,
@@ -108,20 +88,4 @@ ReReReRe <- function(data,
     flagged = corComparedIndex<=cutOff)%>%
   return
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

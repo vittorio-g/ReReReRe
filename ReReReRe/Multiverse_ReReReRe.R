@@ -1,16 +1,20 @@
 #### Workspace Setting ####
-
+rm(list=ls())
 library(multiverse)
 library(dplyr)
 library(purrr)
+library(tidyverse)
+library(magrittr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 #loading functions
 source("Functions/Careless_machine_2.R")
 source("Functions/A_good_careless_dataset.R")
-source("Functions/ReReReRe.R")
+source("Functions/ReReReRe-Redux.R")
 
+
+library(psychTools)
 
 #loading dataset
 data("spi")
@@ -22,13 +26,13 @@ M <- multiverse()
 
 #parameters of the multiverse
 
-# options_pct_careless <- seq(.1,.5,.05)
-# options_corThreshold <- seq(.45,.80,.05)
-# options_cutOff <- seq(.81,.99,0.01)
+options_pct_careless <- seq(.1,.5,.05)
+options_corThreshold <- seq(.45,.80,.05)
+options_cutOff <- seq(.81,.99,0.01)
 
-options_pct_careless <- seq(.1,.2,.05)
-options_corThreshold <- seq(.45,.55,.05)
-options_cutOff <- seq(.81,.83,0.01)
+# options_pct_careless <- seq(.1,.2,.05)
+# options_corThreshold <- seq(.45,.55,.05)
+# options_cutOff <- seq(.81,.83,0.01)
 
 inside(M,{
   corruption <- careless_corruption(dat=spi, 
@@ -66,7 +70,9 @@ inside(M,{
   })
 
 
+execute_multiverse(M, progress = T) %>% suppressWarnings
 
+a <- extract_variables(M, flagged, carelessLabels)
 
 
 
@@ -97,7 +103,7 @@ M$corruptSpi
 
 extract_variable_from_universe(M, idx = 2, name = "corruptSpi")
 
-a <- extract_variables(M,corruptSpi)
+a <- extract_variables(M,flagged)
 
 a$corruptSpi[[1]]
 
